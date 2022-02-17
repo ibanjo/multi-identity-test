@@ -1,0 +1,35 @@
+﻿@{
+    var returnUrl = ViewData["ReturnUrl"] as string;
+}
+<h1>Login</h1>
+@if (!string.IsNullOrEmpty(TempData["Error"] as string))
+{
+    <h2 class="alert-danger">@TempData["Error"]</h2>
+}
+
+<div>
+    <ul>
+        <li>
+            @Html.ActionLink(
+                "Login with Google",
+                "LoginExternal",
+                "Account",
+                new { provider = "google" }
+            )
+        </li>
+        <li>
+            @Html.ActionLink(
+                "Login with Kleos",
+                "LoginExternal",
+                "Account",
+                new { provider = "kleos" }
+            )
+        </li>
+    </ul>
+</div>
+<form asp-controller="Account" asp-action="Login" method="post">
+    <input type="text" name="username" placeholder="Username" />
+    <input type="password" name="password" placeholder="Password" />
+    <input type="hidden" name="returnUrl" value="@returnUrl" />
+    <input type="submit" value="login" />
+</form>
