@@ -11,4 +11,9 @@
         public static readonly string ContentIntegration = "contentIntegration";
         public static readonly string Kleos = "kleosIdentityServer";
     }
+
+    public static class MyAuthorizationPolicies
+    {
+        public static readonly string SimpleValuePolicy = "simpleValuePolicy";
+    }
 }

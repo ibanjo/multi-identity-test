@@ -8,20 +8,11 @@ namespace MultiIdentityTest.Controllers
     public class SecuredController : Controller
     {
         [Authorize(AuthenticationSchemes = "AuthSchemeFuffaUno")]
-        public async Task<IActionResult> GoogleSecured()
-        {
-            return View();
-        }
+        public IActionResult GoogleSecured() => View();
 
         [Authorize(AuthenticationSchemes = "AuthSchemeFuffaDue")]
-        public async Task<IActionResult> KleosSecured()
-        {
-            return View();
-        }
+        public IActionResult KleosSecured() => View();
 
-        public IActionResult Generic()
-        {
-            return View();
-        }
+        public IActionResult Generic() => View();
     }
 }

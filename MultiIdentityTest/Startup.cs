@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.OAuth;
@@ -14,6 +15,8 @@ using MultiIdentityTest.Middlewares;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.IdentityModel.Tokens;
 
 namespace MultiIdentityTest
 {
@@ -30,6 +33,8 @@ namespace MultiIdentityTest
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews();
+            services.AddSwaggerGen();
+
             services
                 .AddAuthentication(options =>
                 {
@@ -64,6 +69,11 @@ namespace MultiIdentityTest
                         }
                     };
                 })
+                .AddJwtBearer("KleosToken", options =>
+                {
+                    options.Authority = "https://localhost:44325";
+                    options.TokenValidationParameters = new TokenValidationParameters { ValidateAudience = false };
+                })
                 .AddOpenIdConnect(MyChallengeSchemes.ContentIntegration, options =>
                 {
                     options.SignInScheme = MyAuthenticationSchemes.CiScheme;
@@ -76,7 +86,7 @@ namespace MultiIdentityTest
                 .AddOpenIdConnect(MyChallengeSchemes.Kleos, options =>
                 {
                     options.SignInScheme = MyAuthenticationSchemes.RegularScheme;
-                    options.Authority = "https://KLEOS-DEV01.elsa.it/KLEOSIDENTITYv4";
+                    options.Authority = "https://localhost:44325";
                     options.ClientId = "kleosbrowser";
                     options.ClientSecret = "25693B1C-4342-4A05-B784-688708212F12";
                     options.ResponseType = OpenIdConnectResponseType.Code;
@@ -85,6 +95,27 @@ namespace MultiIdentityTest
                     "kleosLegal kleosStateful kleosIdentity offline_access openid profile IdentityServerApi"
                         .Split(" ").ToList().ForEach(scope => options.Scope.Add(scope));
                 });
+
+            services.AddAuthorization(options =>
+            {
+                new List<string>
+                {
+                    "kleosOps",
+                    "IdentityServerApi"
+                }.ForEach(scope =>
+                {
+                    options.AddPolicy(scope, builder =>
+                    {
+                        builder
+                            .RequireAuthenticatedUser()
+                            .AddAuthenticationSchemes("KleosToken")
+                            .Requirements.Add(new ScopeRequirement(scope));
+                        builder.Build();
+                    });
+                });
+            });
+
+            services.AddSingleton<IAuthorizationHandler, RequireScopeHandler>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -104,17 +135,20 @@ namespace MultiIdentityTest
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseRouting();
+            
+            app.UseSwagger();
+            app.UseSwaggerUI();
 
             app.UseAuthentication();
-            app.UseMiddleware<AuthSchemeMiddleware>();
+            //app.UseMiddleware<AuthSchemeMiddleware>();
 
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(
-                    name: "default",
-                    pattern: "{controller=Home}/{action=Index}/{id?}"
+                    "default",
+                    "{controller=Home}/{action=Index}/{id?}"
                 );
             });
         }

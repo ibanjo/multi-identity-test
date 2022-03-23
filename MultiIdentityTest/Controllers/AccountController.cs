@@ -58,9 +58,9 @@ namespace MultiIdentityTest.Controllers
 
         [Authorize]
         [HttpGet]
-        public async Task<IActionResult> Logout()
+        public IActionResult Logout()
         {
-            var scheme = User.Claims.FirstOrDefault(c => c.Type == ".AuthScheme").Value;
+            string scheme = User.Claims.FirstOrDefault(c => c.Type == ".AuthScheme")?.Value;
             return new SignOutResult(new[] { MyAuthenticationSchemes.RegularScheme, scheme });
         }
 
